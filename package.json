@@ -1,0 +1,27 @@
+{
+    "name": "mylibrary-backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "nodemon server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jelmore1674/mylibrary-backend.git"
+    },
+    "author": "Justin Elmore",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/jelmore1674/mylibrary-backend/issues"
+    },
+    "homepage": "https://github.com/jelmore1674/mylibrary-backend#readme",
+    "dependencies": {
+        "bcrypt": "^5.0.1",
+        "cors": "^2.8.5",
+        "dotenv": "^10.0.0",
+        "express": "^4.17.1",
+        "knex": "^0.95.6"
+    }
+}
