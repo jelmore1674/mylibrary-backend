@@ -100,9 +100,12 @@ app.post('/library-item', (req, res) => {
 
 app.put('/library-item', (req, res) => {
     const { remove, update, id } = req.body;
+
+    db.select('*').from('library').then(console.log);
+
     db.select('*')
         .from('library')
-        .where('id', '=', id)
+        .where('id', id)
         .then((book) => {
             if (update) {
                 if (book[0].completed == true) {
@@ -123,6 +126,8 @@ app.put('/library-item', (req, res) => {
                         })
                         .then(trx.commit)
                         .catch(trx.rollback);
+                } else {
+                    null;
                 }
             } else if (remove) {
                 db('library')
@@ -133,13 +138,59 @@ app.put('/library-item', (req, res) => {
                             .select('*')
                             .then((data) => console.log(data));
                     });
+            } else {
+                null;
             }
         })
-        .catch(res.send(400).json('Unable to update library'));
+        .catch(res.json('Unable to update library'));
 });
 
 app.get('/library-item/:userId', (req, res) => {
     const userId = req.params.userId;
+    const demoEmail = 'demo@demo.com';
+    db.transaction((trx) => {
+        trx.del()
+            .from('library')
+            .where('email', '=', 'demo@demo.com')
+            .then(trx.commit)
+            .catch(trx.rollback);
+    });
+
+    db.select('*')
+        .from('users')
+        .where('email', '=', 'demo@demo.com')
+        .then((user) =>
+            db.transaction((trx) => {
+                trx.insert([{
+                            email: demoEmail,
+                            title: 'Welcome To MyLibrary',
+                            author: 'Justin Elmore',
+                            pages: 23,
+                            completed: true,
+                            userid: user[0].userid,
+                        },
+                        {
+                            email: demoEmail,
+                            title: 'If you click the finished button',
+                            author: 'It will change the status',
+                            pages: 55,
+                            completed: false,
+                            userid: user[0].userid,
+                        },
+                        {
+                            email: demoEmail,
+                            title: 'To save history of books',
+                            author: 'Create an Account!',
+                            pages: 54,
+                            completed: true,
+                            userid: user[0].userid,
+                        },
+                    ])
+                    .into('library')
+                    .then(trx.commit)
+                    .catch(trx.rollback);
+            })
+        );
     db.select('*')
         .from('library')
         .where('userid', '=', userId)
