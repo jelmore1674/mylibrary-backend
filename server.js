@@ -32,12 +32,15 @@ app.post('/signin', (req, res) => {
             .from('login')
             .then((users) => {
                 for (let i = 0; i < users.length; i++) {
-                    if (users[i].email == email && users[i].hash == password) {
+                    const match = bcrypt.compare(password, users[i].hash);
+                    if (match) {
                         return db
                             .select('*')
                             .from('users')
-                            .where('email', '=', email)
-                            .then((user) => res.json(user));
+                            .where('email', email)
+                            .then((user) => {
+                                res.json(user);
+                            });
                     }
                 }
             });
@@ -49,44 +52,50 @@ app.post('/register', (req, res) => {
     if (!email || !name || !password) {
         res.json('missing credentials');
     } else {
-        db('users')
-            .select('*')
-            .insert({
-                name: name,
-                email: email,
-            })
-            .then((data) => {
-                console.log(data);
-            });
-        console.log('added user');
-        db('login')
-            .select('*')
-            .insert({
-                email: email,
-                hash: password,
-            })
-            .then((user) => console.log(user));
+        bcrypt.hash(password, 10, function(err, hash) {
+            db.transaction((trx) => {
+                trx.insert({
+                        hash: hash,
+                        email: email,
+                    })
+                    .into('login')
+                    .returning('email')
+                    .then((loginEmail) => {
+                        return trx('users')
+                            .returning('*')
+                            .insert({
+                                email: loginEmail[0],
+                                name: name,
+                            })
+                            .then((user) => {
+                                console.log(user[0]);
+                                res.json(user[0]);
+                            });
+                    })
+                    .then(trx.commit)
+                    .catch(trx.rollback);
+            }).catch((err) => res.status(400).json('unable to register'));
+        });
     }
-    db('users')
-        .select('*')
-        .then((users) => res.json(users));
 });
 
 app.post('/library-item', (req, res) => {
     const { title, author, pages, completed, userid, email } = req.body;
 
-    db('library')
-        .insert({
-            userid: userid,
-            title: title,
-            author: author,
-            pages: pages,
-            completed: completed,
-            email: email,
-        })
-        .then((data) => {
-            console.log(data);
-        });
+    db.transaction((trx) => {
+        trx.insert({
+                userid: userid,
+                title: title,
+                author: author,
+                pages: pages,
+                completed: completed,
+                email: email,
+            })
+            .into('library')
+            .returning('library')
+            .then(trx.commit)
+            .catch(trx.rollback);
+    }).catch((err) => res.json('cannot updated', err));
 });
 
 app.put('/library-item', (req, res) => {
@@ -95,19 +104,38 @@ app.put('/library-item', (req, res) => {
         .from('library')
         .where('id', '=', id)
         .then((book) => {
-            console.log(book[0].completed);
             if (update) {
                 if (book[0].completed == true) {
-                    return db('library')
-                        .update('completed', false)
-                        .where('id', '=', id);
+                    return db
+                        .transaction((trx) => {
+                            trx.into('library')
+                                .update('completed', false)
+                                .where('id', '=', id);
+                        })
+                        .then(trx.commit)
+                        .catch(trx.rollback);
                 } else if (book[0].completed == false) {
-                    return db('library')
-                        .update('completed', true)
-                        .where('id', '=', id);
+                    return db
+                        .transaction((trx) => {
+                            trx.into('library')
+                                .update('completed', false)
+                                .where('id', '=', id);
+                        })
+                        .then(trx.commit)
+                        .catch(trx.rollback);
                 }
+            } else if (remove) {
+                db('library')
+                    .del()
+                    .where('id', id)
+                    .then((data) => {
+                        db('library')
+                            .select('*')
+                            .then((data) => console.log(data));
+                    });
             }
-        });
+        })
+        .catch(res.send(400).json('Unable to update library'));
 });
 
 app.get('/library-item/:userId', (req, res) => {
