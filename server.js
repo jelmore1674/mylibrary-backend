@@ -53,28 +53,25 @@ app.post('/register', (req, res) => {
         res.json('missing credentials');
     } else {
         bcrypt.hash(password, 10, function(err, hash) {
-            db.transaction((trx) => {
-                trx.insert({
-                        hash: hash,
-                        email: email,
-                    })
-                    .into('login')
-                    .returning('email')
-                    .then((loginEmail) => {
-                        return trx('users')
-                            .returning('*')
-                            .insert({
-                                email: loginEmail[0],
-                                name: name,
-                            })
-                            .then((user) => {
-                                console.log(user[0]);
-                                res.json(user[0]);
-                            });
-                    })
-                    .then(trx.commit)
-                    .catch(trx.rollback);
-            }).catch((err) => res.status(400).json('unable to register'));
+            db('login')
+                .insert({
+                    hash: hash,
+                    email: email,
+                })
+                .returning('email')
+                .then((loginEmail) => {
+                    db('users')
+                        .returning('*')
+                        .insert({
+                            email: loginEmail[0],
+                            name: name,
+                        })
+                        .then((user) => {
+                            console.log(user[0]);
+                            res.json(user[0]);
+                        });
+                })
+                .catch((err) => res.status(400).json('unable to register'));
         });
     }
 });
@@ -82,115 +79,43 @@ app.post('/register', (req, res) => {
 app.post('/library-item', (req, res) => {
     const { title, author, pages, completed, userid, email } = req.body;
 
-    db.transaction((trx) => {
-        trx.insert({
-                userid: userid,
-                title: title,
-                author: author,
-                pages: pages,
-                completed: completed,
-                email: email,
-            })
-            .into('library')
-            .returning('library')
-            .then(trx.commit)
-            .catch(trx.rollback);
-    }).catch((err) => res.json('cannot updated', err));
+    db('library')
+        .insert({
+            userid: userid,
+            title: title,
+            author: author,
+            pages: pages,
+            completed: completed,
+            email: email,
+        })
+        .into('library')
+        .returning('library')
+        .catch(() => res.json('cannot updated'));
 });
 
 app.put('/library-item', (req, res) => {
-    const { remove, update, id } = req.body;
-
-    db.select('*').from('library').then(console.log);
+    const { remove, update, id, completed } = req.body;
 
     db.select('*')
         .from('library')
         .where('id', id)
-        .then((book) => {
-            if (update) {
-                if (book[0].completed == true) {
-                    return db
-                        .transaction((trx) => {
-                            trx.into('library')
-                                .update('completed', false)
-                                .where('id', '=', id);
-                        })
-                        .then(trx.commit)
-                        .catch(trx.rollback);
-                } else if (book[0].completed == false) {
-                    return db
-                        .transaction((trx) => {
-                            trx.into('library')
-                                .update('completed', false)
-                                .where('id', '=', id);
-                        })
-                        .then(trx.commit)
-                        .catch(trx.rollback);
-                } else {
-                    null;
-                }
-            } else if (remove) {
+        .update({ completed: completed });
+
+    if (remove) {
+        db('library')
+            .del()
+            .where('id', id)
+            .then((data) => {
                 db('library')
-                    .del()
-                    .where('id', id)
-                    .then((data) => {
-                        db('library')
-                            .select('*')
-                            .then((data) => console.log(data));
-                    });
-            } else {
-                null;
-            }
-        })
-        .catch(res.json('Unable to update library'));
+                    .select('*')
+                    .then((data) => res.json(data));
+            });
+    }
 });
 
 app.get('/library-item/:userId', (req, res) => {
     const userId = req.params.userId;
-    const demoEmail = 'demo@demo.com';
-    db.transaction((trx) => {
-        trx.del()
-            .from('library')
-            .where('email', '=', 'demo@demo.com')
-            .then(trx.commit)
-            .catch(trx.rollback);
-    });
 
-    db.select('*')
-        .from('users')
-        .where('email', '=', 'demo@demo.com')
-        .then((user) =>
-            db.transaction((trx) => {
-                trx.insert([{
-                            email: demoEmail,
-                            title: 'Welcome To MyLibrary',
-                            author: 'Justin Elmore',
-                            pages: 23,
-                            completed: true,
-                            userid: user[0].userid,
-                        },
-                        {
-                            email: demoEmail,
-                            title: 'If you click the finished button',
-                            author: 'It will change the status',
-                            pages: 55,
-                            completed: false,
-                            userid: user[0].userid,
-                        },
-                        {
-                            email: demoEmail,
-                            title: 'To save history of books',
-                            author: 'Create an Account!',
-                            pages: 54,
-                            completed: true,
-                            userid: user[0].userid,
-                        },
-                    ])
-                    .into('library')
-                    .then(trx.commit)
-                    .catch(trx.rollback);
-            })
-        );
     db.select('*')
         .from('library')
         .where('userid', '=', userId)
