@@ -57,7 +57,7 @@ const handleRegister = (req, res, bcrypt, db) => {
                             res.json(user[0]);
                         });
                 })
-                .catch((err) => res.status(400).json('unable to register'));
+                .catch((err) => res.status(400).json(err));
         });
     }
 };
