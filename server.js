@@ -14,7 +14,7 @@ const library = require('./controllers/library');
 const app = express();
 // Connect to DB
 const db = knex({
-    client: DB_CLIENT,
+    client: 'pg',
     connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false,
