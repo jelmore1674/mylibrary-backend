@@ -26,10 +26,20 @@ authentication using bcrypt. Stores and recalls the data from the database.
 I used knex to connect to the PostgreSQL database. I have 3 different tables for
 my database.
 
-Users userid | name | email --- | --- | --- 1 | Justin | justin@justin.com
+Users
 
-Login id | email | hash --- | --- | --- 1 | justin@justin.com | randomhash
+| userid | name   | email             |
+| ------ | ------ | ----------------- |
+| 1      | Justin | justin@justin.com |
 
-Library id | email | title | author | pages | completed | userid --- | --- | ---
-| --- | --- | --- | --- | 1 | justin@justin.com | Test Book | Justin Elmore | 34
-| true | 1
+Login
+
+| id  | email             | hash       | password |
+| --- | ----------------- | ---------- | -------- |
+| 1   | justin@justin.com | randomhash |
+
+Library
+
+| id  | email             | title     | author        | pages | completed | userid |
+| --- | ----------------- | --------- | ------------- | ----- | --------- | ------ |
+| 1   | justin@justin.com | Test Book | Justin Elmore | 34    | true      | 1      |
