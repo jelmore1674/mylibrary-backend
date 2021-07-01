@@ -1,6 +1,4 @@
 require('dotenv').config();
-// Destruct process.env
-const { DB_PASS, DB_NAME, DB_HOST, DB_CLIENT, DB_USER } = process.env;
 // Import node libraries
 const express = require('express');
 const knex = require('knex');
