@@ -5,11 +5,6 @@ const handleRegister = (req, res, bcrypt, db) => {
     if (!email || !name || !password) {
         res.json('missing credentials');
     } else {
-        res.json({
-            email,
-            password,
-            name,
-        });
         // hash the password
         bcrypt.hash(password, 10, function(err, hash) {
             // Insert into the login table of the database
