@@ -42,7 +42,7 @@ const handleSignin = (req, res, bcrypt, db) => {
             .then(
                 db
                 .select('*')
-                .from('users')
+                .from('login')
                 .then((users) => {
                     for (let i = 0; i < users.length; i++) {
                         // if a match compare hashes
