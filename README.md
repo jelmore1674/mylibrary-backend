@@ -34,8 +34,8 @@ Users
 
 Login
 
-| id  | email             | hash       | password |
-| --- | ----------------- | ---------- | -------- |
+| id  | email             | hash       |
+| --- | ----------------- | ---------- |
 | 1   | justin@justin.com | randomhash |
 
 Library
