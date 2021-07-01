@@ -15,11 +15,9 @@ const app = express();
 // Connect to DB
 const db = knex({
     client: DB_CLIENT,
-    connection: {
-        host: DB_HOST,
-        user: DB_USER,
-        password: DB_PASS,
-        database: DB_NAME,
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false,
     },
 });
 // Req Obj as JSON, add CORS
