@@ -4,8 +4,8 @@ const handleSignin = (req, res, bcrypt, db) => {
     // Check for email and password
     if (email && password) {
         // Query database for match
-        db.del()
-            .from('library')
+        db('library')
+            .del()
             .where('email', 'demo@demo.com')
             .then(
                 db
