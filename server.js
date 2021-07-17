@@ -23,6 +23,16 @@ const db = knex({
 // Req Obj as JSON, add CORS
 app.use(express.json());
 app.use(cors());
+
+// enable CORS without external module
+app.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header(
+        'Access-Control-Allow-Headers',
+        'Origin, X-Requested-With, Content-Type, Accept'
+    );
+    next();
+});
 // To see if server is working
 app.get('/', (req, res) => {
     res.json('Server is working');
