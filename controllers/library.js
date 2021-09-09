@@ -1,60 +1,60 @@
-const addToLibrary = (req, res, db) => {
-    // Destruct the Request Object
-    const { title, author, pages, completed, userid, email } = req.body;
-    // Insert into the databse
-    db('library')
-        .insert({
+const libraryModel = require('../models/library');
+const userModel = require('../models/users');
+
+module.exports = {
+    addToLibrary: async(req, res) => {
+        // Destruct the Request Object
+        const { title, author, pages, completed, userid, email } = req.body;
+        const newBook = {
             userid: userid,
             title: title,
             author: author,
             pages: pages,
             completed: completed,
             email: email,
-        })
-        .into('library')
-        .returning('library')
-        .catch(() => res.json('cannot updated'));
-};
+        };
+        // Insert into the databse
+        try {
+            const addBook = await libraryModel.addBook(newBook);
+            if (addBook === 'Success') {
+                res.status(201).json('success');
+            }
+        } catch (err) {
+            res.status(401).json(err);
+        }
+    },
 
-const updateLibrary = (req, res, db) => {
-    // Destruct the Request Object
-    const { remove, update, id, completed } = req.body;
-    // Checks for remove
-    if (remove) {
-        db('library')
-            .del()
-            .where('id', id)
-            .then((data) => {
-                db('library')
-                    .select('*')
-                    .then((data) => res.json(data));
-            });
-    } // Checks for update of book finished status
-    else if (update) {
-        db.select('*')
-            .from('library')
-            .where('id', id)
-            .update({ completed: completed })
-            .then((item) => {
-                return;
-            });
-    }
-};
+    updateLibrary: async(req, res) => {
+        // Destruct the Request Object
+        const { remove, update, id, completed } = req.body;
+        // Checks for remove
+        if (remove) {
+            try {
+                const removedBook = await libraryModel.removeBook(id);
+                res.status(202).json(removedBook);
+            } catch (err) {
+                res.status(400).json(err);
+            }
+        } // Checks for update of book finished status
+        else if (update) {
+            try {
+                const updatedBook = await libraryModel.updateCompletedStatus(
+                    id,
+                    completed
+                );
+                res.status(202).json(updatedBook);
+            } catch (err) {
+                res.status(406).json(err);
+            }
+        }
+    },
 
-const displayLibrary = (req, res, db) => {
-    // Destruct the Request Object
-    const userId = req.params.userId;
-    // API, Queries Database, returning all books for user
-    db.select('*')
-        .from('library')
-        .where('userid', '=', userId)
-        .then((data) => {
-            res.json(data);
-        });
-};
-
-module.exports = {
-    addToLibrary: addToLibrary,
-    updateLibrary: updateLibrary,
-    displayLibrary: displayLibrary,
+    displayLibrary: async(req, res, db) => {
+        // Destruct the Request Object
+        const userId = req.params.userId;
+        // API, Queries Database, returning all books for user
+        const user = await userModel.getUserByID(userId);
+        const library = await libraryModel.getLibrary(user);
+        res.json(library);
+    },
 };
