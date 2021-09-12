@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const signinRoute = require('./routes/signin');
 const libraryRoute = require('./routes/library');
 const registerRoute = require('./routes/register');
+const userRoute = require('./routes/user');
 
 // Setup Express
 const app = express();
@@ -27,15 +28,14 @@ app.use(function(req, res, next) {
 });
 // To see if server is working
 app.get('/', (req, res) => {
-    res.json('Server is working');
+    res.status(200).json('Server is working');
 });
 // Signin, Logic is in Signin Route
 app.use('/signin', signinRoute);
 // Register, Logic is in Register Route
-app.use('/register', registerRoute.handleRegister);
+app.use('/register', registerRoute);
 // Library Route, Logic is in Library Route
 app.use('/library-item', libraryRoute);
+app.use('/user', userRoute);
 
-app.listen(process.env.PORT || 4500, () => {
-    console.log('Server Is Running!');
-});
+module.exports = app;

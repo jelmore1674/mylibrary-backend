@@ -78,7 +78,7 @@ module.exports = {
         const library = await db
             .select('*')
             .from('library')
-            .where('email', '=', user.email)
+            .where('userid', '=', user.userid)
             .orderBy('id', 'asc');
         return library;
     },

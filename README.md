@@ -25,18 +25,18 @@ authentication using bcrypt. Stores and recalls the data from the database.
 <img src='https://raw.githubusercontent.com/devicons/devicon/9f4f5cdb393299a81125eb5127929ea7bfe42889/icons/express/express-original-wordmark.svg' width="75px" style="background-color: white">
 <img src='https://raw.githubusercontent.com/devicons/devicon/9f4f5cdb393299a81125eb5127929ea7bfe42889/icons/postgresql/postgresql-original-wordmark.svg' width="75px" style="background-color: white">
 
-### Technical Bits
+## Technical Bits
 
 ---
 
-#### NodeJS
+### NodeJS
 
 Using Node, I have 3 routes. _/register, /signin,_ and _/library-items_
 
 The logic of the routes is put into a controller to clean up the _server.js_
 file
 
-#### Database
+### Database
 
 I used knex to connect to the PostgreSQL database. I have 3 different tables for
 my database.

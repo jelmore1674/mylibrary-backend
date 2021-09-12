@@ -1,4 +1,6 @@
 const router = require('express').Router();
 const registerController = require('../controllers/register');
 
-router.get('/', registerController.handleRegister);
+router.post('/', registerController.handleRegister);
+
+module.exports = router;

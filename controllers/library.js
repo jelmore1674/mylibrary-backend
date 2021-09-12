@@ -17,7 +17,7 @@ module.exports = {
         try {
             const addBook = await libraryModel.addBook(newBook);
             if (addBook === 'Success') {
-                res.status(201).json('success');
+                res.status(201).json('Successfully added book');
             }
         } catch (err) {
             res.status(401).json(err);
@@ -26,17 +26,9 @@ module.exports = {
 
     updateLibrary: async(req, res) => {
         // Destruct the Request Object
-        const { remove, update, id, completed } = req.body;
-        // Checks for remove
-        if (remove) {
-            try {
-                const removedBook = await libraryModel.removeBook(id);
-                res.status(202).json(removedBook);
-            } catch (err) {
-                res.status(400).json(err);
-            }
-        } // Checks for update of book finished status
-        else if (update) {
+        const { update, id, completed } = req.body;
+        // Checks for update of book finished status
+        if (update) {
             try {
                 const updatedBook = await libraryModel.updateCompletedStatus(
                     id,
@@ -49,12 +41,31 @@ module.exports = {
         }
     },
 
-    displayLibrary: async(req, res, db) => {
+    removeBook: async(req, res) => {
+        const { remove, id } = req.body;
+        // Checks for remove
+        if (remove) {
+            try {
+                const removedBook = await libraryModel.removeBook(id);
+                res.status(202).json(removedBook);
+            } catch (err) {
+                res.status(400).json(err);
+            }
+        }
+    },
+
+    displayLibrary: async(req, res) => {
         // Destruct the Request Object
         const userId = req.params.userId;
         // API, Queries Database, returning all books for user
         const user = await userModel.getUserByID(userId);
         const library = await libraryModel.getLibrary(user);
-        res.json(library);
+        if (library.length === 0) {
+            const emptyLibrary = await libraryModel.createDefaultLibrary(user);
+            const library = await libraryModel.getLibrary(user);
+            res.status(202).json(library);
+        } else {
+            res.status(202).json(library);
+        }
     },
 };

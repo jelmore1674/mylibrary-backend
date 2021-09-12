@@ -3,31 +3,25 @@ const bcrypt = require('bcrypt');
 const db = require('./knex').db;
 
 module.exports = {
-    createNewUser: async(email, password, name) => {
+    createUser: async(email, password, name) => {
         const hash = await bcrypt.hashSync(password, 10);
         try {
-            const registerUser = await db.transaction(async(trx) => {
-                const loginEmail = await trx
-                    .insert({
-                        hash: hash,
-                        email: email,
-                    })
-                    .into('login')
-                    .returning('email')
-                    .transacting(trx);
-                const newUser = await trx('users')
-                    .returning('*')
-                    .insert({
-                        email: loginEmail[0],
-                        name: name,
-                    })
-                    .transacting(trx);
-                return newUser[0];
+            const loginEmail = await db
+                .insert({
+                    hash: hash,
+                    email: email,
+                })
+                .into('login')
+                .onConflict('email', 'hash')
+                .ignore()
+                .returning('email');
+            const newUser = await db('users').returning('*').insert({
+                email: loginEmail[0],
+                name: name,
             });
-
-            return registerUser;
+            return newUser[0];
         } catch (err) {
-            return err;
+            return Promise.reject('Unable to add user');
         }
     },
     getUserByEmail: async(email) => {
@@ -42,7 +36,7 @@ module.exports = {
     },
     getUserByID: async(userId) => {
         const user = await db
-            .select('email')
+            .select('*')
             .from('users')
             .where('userid', '=', userId);
         return user[0];
